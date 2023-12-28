@@ -3,8 +3,7 @@ package org.serbug;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -14,6 +13,9 @@ import java.io.File;
 public class ServerBroker {
     private final int port;
     private final List<ClientHandler> clients = new ArrayList<>();
+    private final Map<ClientHandler, List<String>> clientMessages = new HashMap<>();
+
+
 
     public ServerBroker(int port) {
         this.port = port;
@@ -26,8 +28,9 @@ public class ServerBroker {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("New client connected");
+                String ip = Arrays.toString(serverSocket.getInetAddress().getAddress());
 
-                ClientHandler clientHandler = new ClientHandler(clientSocket, this);
+                ClientHandler clientHandler = new ClientHandler(clientSocket, this, ip, port);
                 clients.add(clientHandler);
                 new Thread(clientHandler).start();
             }
@@ -39,9 +42,14 @@ public class ServerBroker {
     public void broadcastMessage(String message, ClientHandler sender) {
         for (ClientHandler client : clients) {
             if (client != sender) {
-                client.sendMessage(sender.getClientName() + ": " + message);
+                client.sendMessage(message);
             }
         }
+
+        // Adăugați mesajul la lista de mesaje a expeditorului
+        clientMessages.computeIfAbsent(sender, k -> new ArrayList<>()).add(message);
+
+        saveClientDataToXML();
     }
 
     public void removeClient(ClientHandler clientHandler) {
@@ -49,7 +57,7 @@ public class ServerBroker {
     }
 
 
-    private void loadClientDataFromXML() {
+    public void loadClientDataFromXML() {
         try {
             File file = new File("client_data.xml");
             if (file.exists()) {
@@ -59,7 +67,12 @@ public class ServerBroker {
 
                 if (clientDataList.getClientDataList() != null) {
                     for (ClientData clientData : clientDataList.getClientDataList()) {
-                        System.out.println("Loaded client data: " + clientData.getClientName());
+                        System.out.println("Loaded client data:");
+                        System.out.println("Client Name: " + clientData.getClientName());
+                        System.out.println("IP Address: " + clientData.getIpAddress());
+                        System.out.println("Port: " + clientData.getPort());
+                        System.out.println("Messages: " + clientData.getLastMessage());
+                        System.out.println("-----------------------");
                     }
                 }
             }
@@ -77,6 +90,9 @@ public class ServerBroker {
             for (ClientHandler clientHandler : clients) {
                 ClientData clientData = new ClientData();
                 clientData.setClientName(clientHandler.getClientName());
+                clientData.setIpAddress(clientHandler.getClientAddress());
+                clientData.setPort(clientHandler.getClientPort());
+                clientData.setMessages(clientMessages.getOrDefault(clientHandler, new ArrayList<>()));
                 clientDataList.add(clientData);
             }
 

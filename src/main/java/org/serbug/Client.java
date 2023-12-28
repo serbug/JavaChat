@@ -10,6 +10,8 @@ public class Client {
     private final String serverAddress;
     private final int serverPort;
     private String clientName;
+    private volatile boolean isRunning = true;
+    private Socket socket;
 
     public Client(String serverAddress, int serverPort) {
         this.serverAddress = serverAddress;
@@ -26,21 +28,20 @@ public class Client {
         try {
             readUsername();
 
-            try (Socket socket = new Socket(serverAddress, serverPort);
-                 BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            socket = new Socket(serverAddress, serverPort);
+
+            try (BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                  PrintWriter output = new PrintWriter(socket.getOutputStream(), true);
                  BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in))) {
 
                 System.out.println("Connected to the server");
 
-                // Send client name to the server
                 output.println(clientName);
 
-                // Read messages from the server
                 new Thread(() -> {
                     String message;
                     try {
-                        while ((message = input.readLine()) != null) {
+                        while (!socket.isClosed() && (message = input.readLine()) != null) {
                             System.out.println(message);
                         }
                     } catch (IOException e) {
@@ -48,10 +49,12 @@ public class Client {
                     }
                 }).start();
 
-                // Send messages to the server
                 String userInput;
-                while ((userInput = consoleInput.readLine()) != null) {
+                while (!socket.isClosed() && (userInput = consoleInput.readLine()) != null) {
                     output.println(userInput);
+                    if ("/quit".equals(userInput)) {
+                        stopClient();
+                    }
                 }
 
             } catch (IOException e) {
@@ -60,6 +63,18 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void stopClient() {
+
+        try {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        isRunning = false;
     }
 
     public static void main(String[] args) {

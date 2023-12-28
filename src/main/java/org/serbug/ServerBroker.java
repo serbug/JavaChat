@@ -40,22 +40,43 @@ public class ServerBroker {
     }
 
     public void broadcastMessage(String message, ClientHandler sender) {
-        for (ClientHandler client : clients) {
-            if (client != sender) {
-                client.sendMessage(message);
+        if (message.startsWith("/online")) {
+            listOnlineClients(sender);
+        }else {
+            // Restul logicii pentru transmiterea mesajelor normale
+            for (ClientHandler client : clients) {
+                if (client != sender) {
+                    client.sendMessage(message);
+                }
             }
+
+            clientMessages.computeIfAbsent(sender, k -> new ArrayList<>()).add(message);
+
+           // saveClientDataToXML();
         }
+//        for (ClientHandler client : clients) {
+//            if (client != sender) {
+//                client.sendMessage(message);
+//            }
+//        }
+//
+//        // Adăugați mesajul la lista de mesaje a expeditorului
+//        clientMessages.computeIfAbsent(sender, k -> new ArrayList<>()).add(message);
 
-        // Adăugați mesajul la lista de mesaje a expeditorului
-        clientMessages.computeIfAbsent(sender, k -> new ArrayList<>()).add(message);
 
-        saveClientDataToXML();
     }
 
     public void removeClient(ClientHandler clientHandler) {
         clients.remove(clientHandler);
     }
-
+    // Adăugați această metodă la ServerBroker
+    public void listOnlineClients(ClientHandler requester) {
+        StringBuilder onlineClients = new StringBuilder("Online clients:\n");
+        for (ClientHandler client : clients) {
+            onlineClients.append(client.getClientName()).append("\n");
+        }
+        requester.sendMessage(onlineClients.toString());
+    }
 
     public void loadClientDataFromXML() {
         try {
@@ -109,7 +130,7 @@ public class ServerBroker {
     public static void main(String[] args) {
         ServerBroker server = new ServerBroker(8080);
         server.loadClientDataFromXML();
-        Runtime.getRuntime().addShutdownHook(new Thread(server::saveClientDataToXML));
+       // Runtime.getRuntime().addShutdownHook(new Thread(server::saveClientDataToXML));
         server.start();
     }
 }

@@ -16,6 +16,8 @@ public class ClientHandler implements Runnable {
     private final ServerBroker server;
     private PrintWriter output;
     private String clientName;
+    private volatile boolean isRunning = true;
+
     private final List<String> messages = new ArrayList<>();
     private final String clientAddress; // Store client's address
     private final int clientPort; // Store client's port
@@ -48,31 +50,37 @@ public class ClientHandler implements Runnable {
 
             // Read and broadcast messages
             String message;
-            while ((message = input.readLine()) != null) {
-                server.broadcastMessage(clientName + ": " + message, this);
+            while (isRunning && (message = input.readLine()) != null) {
+                if (message.equals("/quit")) {
+                    server.broadcastMessage(clientName + " left the chat", this);
 
-                // Adăugați mesajul la lista de mesaje a clientului
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-                String timestampedMessage = "[" + dateFormat.format(new Date()) + "] " + message;
-                messages.add(timestampedMessage);
-                server.saveClientDataToXML();
+                    break;
+                } else {
+                    server.broadcastMessage(clientName + ": " + message, this);
 
-                server.loadClientDataFromXML();
+                    // Adăugați mesajul la lista de mesaje a clientului
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+                    String timestampedMessage = "[" + dateFormat.format(new Date()) + "] " + message;
+                    messages.add(timestampedMessage);
+
+                    server.saveClientDataToXML();
+                    server.loadClientDataFromXML();
+                }
+
 
             }
-
 
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
                 clientSocket.close();
-                server.removeClient(this);
-                // Salvare mesaje înainte de a închide clientul
-                saveMessagesToXML();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
+            server.removeClient(this);
+            // Salvare mesaje înainte de a închide clientul
+            //saveMessagesToXML();
         }
     }
     // Adăugați această metodă pentru a salva mesajele în fișierul XML
@@ -90,6 +98,10 @@ public class ClientHandler implements Runnable {
             e.printStackTrace();
         }
     }
+    public void stopClient() {
+        isRunning = false;
+    }
+
     public void sendMessage(String message) {
         output.println(message);
     }

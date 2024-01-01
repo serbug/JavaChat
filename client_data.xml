@@ -1,1 +1,2 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?><clientDataList><client><clientName>hola</clientName><ipAddress>[0, 0, 0, 0]</ipAddress><messages>hola joined the chat</messages><messages>hola: come estas</messages><port>8080</port></client></clientDataList>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<clientDataList/>

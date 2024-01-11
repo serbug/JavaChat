@@ -31,7 +31,7 @@
         </dependency>
         <dependency>
             <groupId>org.fusesource.stompjms</groupId>
-            <artifactId>stompjms-client</artifactId>
+            <artifactId>stompjms-clientRoom</artifactId>
             <version>1.19</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->

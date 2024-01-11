@@ -1,3 +1,4 @@
+//Receiver
 package org.serbug;
 
 
@@ -8,7 +9,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 // Clasa care implementează funcționalitatea unui client pentru a se conecta la server
-public class Client {
+public class ClientRoom {
     // Adresa serverului la care clientul va încerca să se conecteze
     private final String serverAddress;
     // Portul serverului la care clientul va încerca să se conecteze
@@ -21,7 +22,7 @@ public class Client {
     private Socket socket;
 
     // Constructor care primește adresa și portul serverului
-    public Client(String serverAddress, int serverPort) {
+    public ClientRoom(String serverAddress, int serverPort) {
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
     }
@@ -106,7 +107,7 @@ public class Client {
 
     // Metoda principală care creează un obiect Client și îl pornește
     public static void main(String[] args) {
-        Client client = new Client("localhost", 8080);
-        client.start();
+        ClientRoom clientRoom = new ClientRoom("localhost", 8080);
+        clientRoom.start();
     }
 }

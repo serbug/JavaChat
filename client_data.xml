@@ -1,2 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<clientDataList/>
+<clientDataList>
+    <client>
+        <clientName>Sergiu</clientName>
+        <ipAddress>[0, 0, 0, 0]</ipAddress>
+        <messages>Sergiu joined the chat</messages>
+        <port>8080</port>
+    </client>
+    <client>
+        <clientName>Mihai</clientName>
+        <ipAddress>[0, 0, 0, 0]</ipAddress>
+        <messages>Mihai joined the chat</messages>
+        <messages>Mihai: Salut Sergiu</messages>
+        <port>8080</port>
+    </client>
+</clientDataList>
